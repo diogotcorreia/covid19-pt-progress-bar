@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vacinas COVID-19 Portugal - Progresso</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      html {
+        display: flex;
+        justify-content: center;
+        min-height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: #212121;
+        display: flex;
+        width: clamp(1000px, 80vw, 200px);
+        flex-direction: column;
+        align-content: center;
+        justify-content: center;
+        color: white;
+        font-family: "Varela Round", sans-serif;
+      }
+
+      .meter {
+        box-sizing: content-box;
+        height: 20px; /* Can be anything */
+        position: relative;
+        margin: 60px 10px 20px 10px; /* Just for demo spacing */
+        background: #555;
+        border-radius: 25px;
+        padding: 10px;
+        box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+      }
+      .meter > span.bar {
+        display: block;
+        height: 50%;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
+        background-color: rgb(43, 194, 83);
+        background-image: linear-gradient(
+          center bottom,
+          rgb(43, 194, 83) 37%,
+          rgb(84, 240, 84) 69%
+        );
+        box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
+          inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+        position: absolute;
+        overflow: hidden;
+      }
+
+      #first-progress {
+        z-index: 1;
+      }
+
+      #second-progress {
+        z-index: 2;
+        background-color: rgb(26, 117, 50);
+        background-image: linear-gradient(
+          center bottom,
+          rgb(26, 117, 50) 37%,
+          rgb(36, 143, 36) 69%
+        );
+      }
+
+      .meter > span.goal {
+        position: absolute;
+        left: 70%;
+        top: 0px;
+        height: 100%;
+        width: 0px;
+        border: 1px dashed #bfbfbf;
+      }
+
+      .meter > span.goal:before {
+        content: "70%";
+        position: relative;
+        top: 100%;
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+      }
+
+      .stats p {
+        margin: 10px;
+      }
+
+      .stats .stats-num {
+        font-size: 2em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stats">
+      <div>
+        <p class="stats-title">Primeira Dose</p>
+        <p class="stats-num" id="first-num">-</p>
+        <p class="stats-per" id="first-per">-%</p>
+      </div>
+      <div>
+        <p class="stats-title">Segunda Dose</p>
+        <p class="stats-num" id="second-num">-</p>
+        <p class="stats-per" id="second-per">-%</p>
+      </div>
+    </div>
+
+    <div class="progress">
+      <div class="meter">
+        <span class="bar" id="second-progress" style="width: 0%"></span>
+        <span class="bar" id="first-progress" style="width: 0%"></span>
+        <span class="goal"></span>
+      </div>
+    </div>
+
+    <script>
+      const PORTUGAL_POPULATION = 10302674;
+
+      const formatNumber = (int) => parseInt(int, 10).toLocaleString();
+
+      const updateContent = (data) => {
+        const [
+          _date,
+          _doses,
+          _doses_novas,
+          doses1,
+          _doses1_novas,
+          doses2,
+          _doses2_novas,
+        ] = data
+          .split("\n")
+          .filter((v) => v.trim())
+          .reverse()[0]
+          .split(",");
+
+        console.log(doses1, doses2);
+
+        const doses1_perc = Math.round((doses1 / PORTUGAL_POPULATION) * 100);
+        const doses2_perc = Math.round((doses2 / PORTUGAL_POPULATION) * 100);
+
+        document.getElementById("first-num").innerText = formatNumber(doses1);
+        document.getElementById("second-num").innerText = formatNumber(doses2);
+
+        document.getElementById("first-per").innerText = `${doses1_perc}%`;
+        document.getElementById("second-per").innerText = `${doses2_perc}%`;
+
+        document.getElementById(
+          "first-progress"
+        ).style.width = `${doses1_perc}%`;
+        document.getElementById(
+          "second-progress"
+        ).style.width = `${doses2_perc}%`;
+      };
+
+      fetch(
+        "https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/vacinas.csv"
+      )
+        .then(function (response) {
+          return response.text();
+        })
+        .then(updateContent)
+        .catch(console.error);
+    </script>
+  </body>
+</html>
