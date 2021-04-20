@@ -29,6 +29,7 @@
         justify-content: center;
         color: white;
         font-family: "Varela Round", sans-serif;
+        text-align: center;
       }
 
       .meter {
@@ -92,7 +93,6 @@
       .stats {
         display: flex;
         justify-content: space-around;
-        text-align: center;
       }
 
       .stats p {
@@ -102,9 +102,22 @@
       .stats .stats-num {
         font-size: 2em;
       }
+
+      footer {
+        margin-top: 50px;
+        color: #bfbfbf;
+        font-size: 0.8rem;
+      }
+
+      a {
+        text-decoration: none;
+        color: rgb(102, 180, 102);
+      }
     </style>
   </head>
   <body>
+    <h1>Progresso Vacinação Portugal</h1>
+
     <div class="stats">
       <div>
         <p class="stats-title">Primeira Dose</p>
@@ -125,6 +138,10 @@
         <span class="goal"></span>
       </div>
     </div>
+
+    <footer>
+      Data from <a href="https://github.com/dssg-pt/covid19pt-data">dssg-pt</a>
+    </footer>
 
     <script>
       const PORTUGAL_POPULATION = 10302674;
