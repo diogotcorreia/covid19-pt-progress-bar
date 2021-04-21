@@ -114,6 +114,10 @@
         text-decoration: none;
         color: rgb(102, 180, 102);
       }
+
+      .sup-inc {
+        color: rgb(102, 180, 102);
+      }
     </style>
   </head>
   <body>
@@ -122,12 +126,18 @@
     <div class="stats">
       <div>
         <p class="stats-title">Primeira Dose</p>
-        <p class="stats-num" id="first-num">-</p>
+        <p class="stats-num">
+          <span id="first-num">-</span
+          ><sup class="sup-inc">+<span id="first-inc"></span></sup>
+        </p>
         <p class="stats-per" id="first-per">-%</p>
       </div>
       <div>
         <p class="stats-title">Segunda Dose</p>
-        <p class="stats-num" id="second-num">-</p>
+        <p class="stats-num">
+          <span id="second-num">-</span
+          ><sup class="sup-inc">+<span id="second-inc"></span></sup>
+        </p>
         <p class="stats-per" id="second-per">-%</p>
       </div>
     </div>
@@ -141,7 +151,24 @@
     </div>
 
     <footer>
-      Data from <a href="https://github.com/dssg-pt/covid19pt-data">dssg-pt</a>
+      <p>
+        Data from
+        <a
+          href="https://github.com/dssg-pt/covid19pt-data"
+          target="_blank"
+          rel="noopener noreferrer"
+          >dssg-pt</a
+        >
+      </p>
+      <p>
+        Source Code on
+        <a
+          href="https://github.com/diogotcorreia/covid19-pt-progress-bar/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub</a
+        >
+      </p>
     </footer>
 
     <script>
@@ -168,9 +195,9 @@
           _doses,
           _doses_novas,
           doses1,
-          _doses1_novas,
+          doses1_novas,
           doses2,
-          _doses2_novas,
+          doses2_novas,
         ] = data
           .split("\n")
           .filter((v) => v.trim())
@@ -192,6 +219,19 @@
           document.getElementById("second-num"),
           0,
           parseInt(doses2, 10),
+          800
+        );
+
+        animateValue(
+          document.getElementById("first-inc"),
+          0,
+          parseInt(doses1_novas, 10),
+          800
+        );
+        animateValue(
+          document.getElementById("second-inc"),
+          0,
+          parseInt(doses2_novas, 10),
           800
         );
 
