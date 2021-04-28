@@ -119,6 +119,10 @@
       .sup-inc {
         color: rgb(102, 180, 102);
       }
+
+      .chart-container {
+        margin-top: 20px;
+      }
     </style>
   </head>
   <body>
@@ -149,6 +153,10 @@
         <span class="bar" id="first-progress" style="width: 0%"></span>
         <span class="goal"></span>
       </div>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="vaccinesChart"></canvas>
     </div>
 
     <footer>
@@ -188,6 +196,85 @@
           }
         };
         window.requestAnimationFrame(step);
+      };
+
+      const updateChart = (data) => {
+        const rows = data
+          .split("\n")
+          .filter((v) => v.trim())
+          .splice(-30) // get last 30 days
+          .map((v) => v.split(","));
+
+        const getColumn = (i) => rows.map((v) => v[i]);
+        const [date, doses1, doses1_novas, doses2, doses2_novas] = [
+          0,
+          3,
+          4,
+          5,
+          6,
+        ].map(getColumn);
+
+        console.log(date, doses1, doses1_novas, doses2, doses2_novas);
+
+        const ctx = document.getElementById("vaccinesChart").getContext("2d");
+        new Chart(ctx, {
+          data: {
+            labels: date,
+            datasets: [
+              {
+                type: "line",
+                label: "Primeira Dose Total",
+                data: doses1,
+                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                borderColor: "rgba(255, 99, 132, 1)",
+              },
+              {
+                type: "line",
+                label: "Segunda Dose Total",
+                data: doses2,
+                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: "rgba(54, 162, 235, 1)",
+              },
+              {
+                type: "bar",
+                label: "Primeira Dose Incremento",
+                data: doses1_novas,
+                backgroundColor: "rgba(255, 206, 86, 0.2)",
+                borderColor: "rgba(255, 206, 86, 1)",
+                borderWidth: 1,
+                yAxisID: "y1",
+              },
+              {
+                type: "bar",
+                label: "Segunda Dose Incremento",
+                data: doses2_novas,
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 1,
+                yAxisID: "y1",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            color: "rgba(255,255,255,1)",
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+              y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+
+                // grid line settings
+                grid: {
+                  drawOnChartArea: false, // only want the grid lines for one axis to show up
+                },
+              },
+            },
+          },
+        });
       };
 
       const updateContent = (data) => {
@@ -245,6 +332,8 @@
         document.getElementById(
           "second-progress"
         ).style.width = `${doses2_perc}%`;
+
+        updateChart(data);
       };
 
       fetch(
@@ -256,5 +345,6 @@
         .then(updateContent)
         .catch(console.error);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.2.0/dist/chart.min.js"></script>
   </body>
 </html>
