@@ -140,6 +140,7 @@
           ><sup class="sup-inc">+<span id="first-inc"></span></sup>
         </p>
         <p class="stats-per" id="first-per">-%</p>
+        <p id="first-estimative"></p>
       </div>
       <div>
         <p class="stats-title">Segunda Dose</p>
@@ -148,6 +149,7 @@
           ><sup class="sup-inc">+<span id="second-inc"></span></sup>
         </p>
         <p class="stats-per" id="second-per">-%</p>
+        <p id="second-estimative"></p>
       </div>
     </div>
 
@@ -173,6 +175,11 @@
           >dssg-pt</a
         >
       </p>
+      <p>Last updated on <span id="last-updated"></span></p>
+      <p>
+        Percentages use a population of <span id="population"></span> people
+      </p>
+      <p>Estimatives are calculated based on the increase of the last 7 days</p>
       <p>
         Source Code on
         <a
@@ -186,6 +193,31 @@
 
     <script>
       const PORTUGAL_POPULATION = 10302674;
+
+      document.getElementById(
+        "population"
+      ).innerText = PORTUGAL_POPULATION.toLocaleString();
+
+      const updateEstimatives = (current_doses, new_doses, element) => {
+        const dailyAvgIncrease =
+          [...new_doses]
+            .splice(-7)
+            .map((v) => parseInt(v, 10))
+            .reduce((acc, v) => acc + v, 0) / 7;
+
+        const remaining = PORTUGAL_POPULATION * 0.7 - current_doses;
+        if (remaining < 0) return; // over 70% already!
+
+        console.log(dailyAvgIncrease, remaining);
+
+        const daysLeft = remaining / dailyAvgIncrease;
+
+        console.log(daysLeft);
+        const targetDate = new Date();
+        targetDate.setTime(Date.now() + daysLeft * 24 * 3600 * 1000);
+
+        element.innerText = `Estimated to reach 70% by ${targetDate.toDateString()}`;
+      };
 
       const animateValue = (obj, start, end, duration) => {
         let startTimestamp = null;
@@ -217,6 +249,17 @@
           5,
           6,
         ].map(getColumn);
+
+        updateEstimatives(
+          doses1.slice(-1)[0],
+          doses1_novas,
+          document.getElementById("first-estimative")
+        );
+        updateEstimatives(
+          doses2.slice(-1)[0],
+          doses2_novas,
+          document.getElementById("second-estimative")
+        );
 
         console.log(date, doses1, doses1_novas, doses2, doses2_novas);
 
@@ -283,7 +326,7 @@
 
       const updateContent = (data) => {
         const [
-          _date,
+          date,
           _doses,
           _doses_novas,
           doses1,
@@ -295,6 +338,10 @@
           .filter((v) => v.trim())
           .reverse()[0]
           .split(",");
+
+        document.getElementById("last-updated").innerText = new Date(
+          date.split("-").reverse().join("-")
+        ).toDateString();
 
         console.log(doses1, doses2);
 
