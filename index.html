@@ -191,12 +191,16 @@
       </p>
     </footer>
 
+    <script
+      async
+      defer
+      src="https://cdn.jsdelivr.net/npm/chart.js@3.2.0/dist/chart.min.js"
+    ></script>
     <script>
       const PORTUGAL_POPULATION = 10302674;
 
-      document.getElementById(
-        "population"
-      ).innerText = PORTUGAL_POPULATION.toLocaleString();
+      document.getElementById("population").innerText =
+        PORTUGAL_POPULATION.toLocaleString("en-US");
 
       const updateEstimatives = (current_doses, new_doses, element) => {
         const dailyAvgIncrease =
@@ -226,7 +230,7 @@
           const progress = Math.min((timestamp - startTimestamp) / duration, 1);
           obj.innerHTML = Math.floor(
             progress * (end - start) + start
-          ).toLocaleString();
+          ).toLocaleString("en-US");
           if (progress < 1) {
             window.requestAnimationFrame(step);
           }
@@ -243,11 +247,7 @@
 
         const getColumn = (i) => rows.map((v) => v[i]);
         const [date, doses1, doses1_novas, doses2, doses2_novas] = [
-          0,
-          3,
-          4,
-          5,
-          6,
+          0, 3, 4, 5, 6,
         ].map(getColumn);
 
         updateEstimatives(
@@ -396,6 +396,5 @@
         .then(updateContent)
         .catch(console.error);
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.2.0/dist/chart.min.js"></script>
   </body>
 </html>
