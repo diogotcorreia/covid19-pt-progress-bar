@@ -121,6 +121,7 @@
       }
 
       .chart-container {
+        width: 100%;
         margin-top: 20px;
       }
 
@@ -239,6 +240,12 @@
       };
 
       const updateChart = (data) => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        var ratio = 0.6;
+        if (w <= 400 || h <= 900){
+          ratio = 0.9;
+        }
         const rows = data
           .split("\n")
           .filter((v) => v.trim())
@@ -304,6 +311,8 @@
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: ratio,
             color: "rgba(255,255,255,1)",
             scales: {
               y: {
