@@ -149,7 +149,7 @@
 
     <div class="stats">
       <div>
-        <p class="stats-title">Primeira Dose</p>
+        <p class="stats-title">Pelo Menos Uma Dose</p>
         <p class="stats-num">
           <span id="first-num">-</span
           ><sup class="sup-inc">+<span id="first-inc"></span></sup>
@@ -159,7 +159,7 @@
         <p id="first-estimate-85"></p>
       </div>
       <div>
-        <p class="stats-title">Segunda Dose</p>
+        <p class="stats-title">Totalmente Vacinado</p>
         <p class="stats-num">
           <span id="second-num">-</span
           ><sup class="sup-inc">+<span id="second-inc"></span></sup>
@@ -169,6 +169,13 @@
         <p id="second-estimate-85"></p>
       </div>
     </div>
+
+    <p>
+      <strong>
+        If there are any missing data points in the last 7 days, estimates may
+        be not totally correct.
+      </strong>
+    </p>
 
     <div class="progress">
       <div class="meter">
@@ -216,6 +223,9 @@
     ></script>
     <script>
       const PORTUGAL_POPULATION = 10302674;
+      const RELEVANT_COLUMNS = [0, 7, 8, 11, 12];
+      const TOTAL_COLUMNS = [7, 11];
+      const DELTA_COLUMNS = [8, 12];
 
       document.getElementById("population").innerText =
         PORTUGAL_POPULATION.toLocaleString("en-US");
@@ -268,20 +278,16 @@
       const updateChart = (data) => {
         const w = window.innerWidth;
         const h = window.innerHeight;
-        var ratio = 0.6;
+        let ratio = 0.6;
         if (w <= 400 || h <= 900) {
           ratio = 0.9;
         }
-        const rows = data
-          .split("\n")
-          .filter((v) => v.trim())
-          .splice(-30) // get last 30 days
-          .map((v) => v.split(","));
+
+        const rows = data.splice(-30); // get last 30 days
 
         const getColumn = (i) => rows.map((v) => v[i]);
-        const [date, doses1, doses1_novas, doses2, doses2_novas] = [
-          0, 3, 4, 5, 6,
-        ].map(getColumn);
+        const [date, doses2, doses2_novas, doses1, doses1_novas] =
+          RELEVANT_COLUMNS.map(getColumn);
 
         [70, 85].forEach((percentage) => {
           updateEstimates(
@@ -307,21 +313,21 @@
             datasets: [
               {
                 type: "line",
-                label: "Primeira Dose Total",
+                label: "Pelo Menos Uma Dose Total",
                 data: doses1,
                 backgroundColor: "rgba(255, 99, 132, 0.2)",
                 borderColor: "rgba(255, 99, 132, 1)",
               },
               {
                 type: "line",
-                label: "Segunda Dose Total",
+                label: "Totalmente Vacinado Total",
                 data: doses2,
                 backgroundColor: "rgba(54, 162, 235, 0.2)",
                 borderColor: "rgba(54, 162, 235, 1)",
               },
               {
                 type: "bar",
-                label: "Primeira Dose Incremento",
+                label: "Pelo Menos Uma Dose Incremento",
                 data: doses1_novas,
                 backgroundColor: "rgba(255, 206, 86, 0.2)",
                 borderColor: "rgba(255, 206, 86, 1)",
@@ -330,7 +336,7 @@
               },
               {
                 type: "bar",
-                label: "Segunda Dose Incremento",
+                label: "Totalmente Vacinado Incremento",
                 data: doses2_novas,
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 borderColor: "rgba(75, 192, 192, 1)",
@@ -364,19 +370,8 @@
       };
 
       const updateContent = (data) => {
-        const [
-          date,
-          _doses,
-          _doses_novas,
-          doses1,
-          doses1_novas,
-          doses2,
-          doses2_novas,
-        ] = data
-          .split("\n")
-          .filter((v) => v.trim())
-          .reverse()[0]
-          .split(",");
+        const [date, doses2, doses2_novas, doses1, doses1_novas] =
+          RELEVANT_COLUMNS.map((col) => data[data.length - 1][col]);
 
         document.getElementById("last-updated").innerText = new Date(
           date.split("-").reverse().join("-")
@@ -384,32 +379,22 @@
 
         console.log(doses1, doses2);
 
-        const doses1_perc = Math.round((doses1 / PORTUGAL_POPULATION) * 100);
-        const doses2_perc = Math.round((doses2 / PORTUGAL_POPULATION) * 100);
+        const doses1_perc = ((doses1 / PORTUGAL_POPULATION) * 100).toFixed(2);
+        const doses2_perc = ((doses2 / PORTUGAL_POPULATION) * 100).toFixed(2);
 
-        animateValue(
-          document.getElementById("first-num"),
-          0,
-          parseInt(doses1, 10),
-          800
-        );
-        animateValue(
-          document.getElementById("second-num"),
-          0,
-          parseInt(doses2, 10),
-          800
-        );
+        animateValue(document.getElementById("first-num"), 0, doses1, 800);
+        animateValue(document.getElementById("second-num"), 0, doses2, 800);
 
         animateValue(
           document.getElementById("first-inc"),
           0,
-          parseInt(doses1_novas, 10),
+          doses1_novas,
           800
         );
         animateValue(
           document.getElementById("second-inc"),
           0,
-          parseInt(doses2_novas, 10),
+          doses2_novas,
           800
         );
 
@@ -426,12 +411,43 @@
         updateChart(data);
       };
 
+      const ensureDataIntegrity = (data) => {
+        data.shift();
+
+        for (let i = 0; i < data.length; ++i) {
+          const line = data[i];
+          for (let j = 0; j < line.length; ++j) {
+            if (
+              TOTAL_COLUMNS.indexOf(j) === -1 &&
+              DELTA_COLUMNS.indexOf(j) === -1
+            )
+              continue;
+
+            line[j] = parseInt(line[j], 10);
+            if (!isNaN(line[j])) continue;
+
+            if (TOTAL_COLUMNS.indexOf(j) >= 0) {
+              line[j] = data[i - 1][j];
+            } else if (DELTA_COLUMNS.indexOf(j) >= 0) {
+              line[j] = line[j - 1] - data[i - 1][j - 1];
+            }
+          }
+        }
+
+        return data;
+      };
+
       fetch(
         "https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/vacinas.csv"
       )
-        .then(function (response) {
-          return response.text();
-        })
+        .then((response) => response.text())
+        .then((data) =>
+          data
+            .split("\n")
+            .filter((v) => !!v)
+            .map((line) => line.split(","))
+        )
+        .then(ensureDataIntegrity)
         .then(updateContent)
         .catch(console.error);
     </script>
