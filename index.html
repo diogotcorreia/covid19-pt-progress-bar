@@ -34,15 +34,21 @@
 
       .meter {
         box-sizing: content-box;
-        height: 20px; /* Can be anything */
         position: relative;
-        margin: 60px 10px 20px 10px; /* Just for demo spacing */
+        margin: 60px 10px 20px 10px;
         background: #555;
         border-radius: 25px;
-        padding: 10px;
+        padding: 0 10px;
         box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
       }
-      .meter > span.bar {
+
+      .inner-meter {
+        height: 20px;
+        position: relative;
+        padding: 10px 0;
+      }
+
+      .inner-meter > span.bar {
         display: block;
         height: 50%;
         border-top-right-radius: 8px;
@@ -76,7 +82,7 @@
         );
       }
 
-      .meter > span.goal {
+      .inner-meter > span.goal {
         position: absolute;
         top: 0px;
         height: 100%;
@@ -84,24 +90,24 @@
         border: 1px dashed #bfbfbf;
       }
 
-      .meter > span.goal-70 {
+      .inner-meter > span.goal-70 {
         left: 70%;
       }
 
-      .meter > span.goal-85 {
+      .inner-meter > span.goal-85 {
         left: 85%;
       }
 
-      .meter > span.goal:before {
+      .inner-meter > span.goal:before {
         position: relative;
         top: 100%;
       }
 
-      .meter > span.goal-70:before {
+      .inner-meter > span.goal-70:before {
         content: "70%";
       }
 
-      .meter > span.goal-85:before {
+      .inner-meter > span.goal-85:before {
         content: "85%";
       }
 
@@ -179,10 +185,12 @@
 
     <div class="progress">
       <div class="meter">
-        <span class="bar" id="second-progress" style="width: 0%"></span>
-        <span class="bar" id="first-progress" style="width: 0%"></span>
-        <span class="goal goal-70"></span>
-        <span class="goal goal-85"></span>
+        <div class="inner-meter">
+          <span class="bar" id="second-progress" style="width: 0%"></span>
+          <span class="bar" id="first-progress" style="width: 0%"></span>
+          <span class="goal goal-70"></span>
+          <span class="goal goal-85"></span>
+        </div>
       </div>
     </div>
 
