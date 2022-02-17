@@ -82,6 +82,16 @@
         );
       }
 
+      #booster-progress {
+        z-index: 3;
+        background-color: rgb(70, 136, 180);
+        background-image: linear-gradient(
+          center bottom,
+          rgb(70, 136, 180) 37%,
+          rgb(37, 102, 146) 69%
+        );
+      }
+
       .inner-meter > span.goal {
         position: absolute;
         top: 0px;
@@ -174,6 +184,16 @@
         <p id="second-estimate-70"></p>
         <p id="second-estimate-85"></p>
       </div>
+      <div>
+        <p class="stats-title">Reforço</p>
+        <p class="stats-num">
+          <span id="booster-num">-</span
+          ><sup class="sup-inc">+<span id="booster-inc"></span></sup>
+        </p>
+        <p class="stats-per" id="booster-per">-%</p>
+        <p id="booster-estimate-70"></p>
+        <p id="booster-estimate-85"></p>
+      </div>
     </div>
 
     <p>
@@ -186,6 +206,7 @@
     <div class="progress">
       <div class="meter">
         <div class="inner-meter">
+          <span class="bar" id="booster-progress" style="width: 0%"></span>
           <span class="bar" id="second-progress" style="width: 0%"></span>
           <span class="bar" id="first-progress" style="width: 0%"></span>
           <span class="goal goal-70"></span>
@@ -231,9 +252,9 @@
     ></script>
     <script>
       const PORTUGAL_POPULATION = 10302674;
-      const RELEVANT_COLUMNS = [0, 7, 8, 11, 12];
-      const TOTAL_COLUMNS = [7, 11];
-      const DELTA_COLUMNS = [8, 12];
+      const RELEVANT_COLUMNS = [0, 7, 8, 11, 12, 18, 19];
+      const TOTAL_COLUMNS = [7, 11, 18];
+      const DELTA_COLUMNS = [8, 12, 19];
 
       document.getElementById("population").innerText =
         PORTUGAL_POPULATION.toLocaleString("en-US");
@@ -294,8 +315,15 @@
         const rows = data.splice(-30); // get last 30 days
 
         const getColumn = (i) => rows.map((v) => v[i]);
-        const [date, doses2, doses2_novas, doses1, doses1_novas] =
-          RELEVANT_COLUMNS.map(getColumn);
+        const [
+          date,
+          doses2,
+          doses2_novas,
+          doses1,
+          doses1_novas,
+          reforco,
+          reforco_novas,
+        ] = RELEVANT_COLUMNS.map(getColumn);
 
         [70, 85].forEach((percentage) => {
           updateEstimates(
@@ -310,9 +338,23 @@
             document.getElementById(`second-estimate-${percentage}`),
             percentage
           );
+          updateEstimates(
+            reforco.slice(-1)[0],
+            reforco_novas,
+            document.getElementById(`booster-estimate-${percentage}`),
+            percentage
+          );
         });
 
-        console.log(date, doses1, doses1_novas, doses2, doses2_novas);
+        console.log(
+          date,
+          doses1,
+          doses1_novas,
+          doses2,
+          doses2_novas,
+          reforco,
+          reforco_novas
+        );
 
         const ctx = document.getElementById("vaccinesChart").getContext("2d");
         new Chart(ctx, {
@@ -334,11 +376,18 @@
                 borderColor: "rgba(54, 162, 235, 1)",
               },
               {
+                type: "line",
+                label: "Reforço Total",
+                data: reforco,
+                backgroundColor: "rgba(255, 206, 86, 0.2)",
+                borderColor: "rgba(255, 206, 86, 1)",
+              },
+              {
                 type: "bar",
                 label: "Pelo Menos Uma Dose Incremento",
                 data: doses1_novas,
-                backgroundColor: "rgba(255, 206, 86, 0.2)",
-                borderColor: "rgba(255, 206, 86, 1)",
+                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                borderColor: "rgba(255, 99, 132, 1)",
                 borderWidth: 1,
                 yAxisID: "y1",
               },
@@ -346,8 +395,17 @@
                 type: "bar",
                 label: "Totalmente Vacinado Incremento",
                 data: doses2_novas,
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                borderColor: "rgba(75, 192, 192, 1)",
+                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+                yAxisID: "y1",
+              },
+              {
+                type: "bar",
+                label: "Reforço Incremento",
+                data: reforco_novas,
+                backgroundColor: "rgba(255, 206, 86, 0.2)",
+                borderColor: "rgba(255, 206, 86, 1)",
                 borderWidth: 1,
                 yAxisID: "y1",
               },
@@ -378,20 +436,29 @@
       };
 
       const updateContent = (data) => {
-        const [date, doses2, doses2_novas, doses1, doses1_novas] =
-          RELEVANT_COLUMNS.map((col) => data[data.length - 1][col]);
+        const [
+          date,
+          doses2,
+          doses2_novas,
+          doses1,
+          doses1_novas,
+          reforco,
+          reforco_novas,
+        ] = RELEVANT_COLUMNS.map((col) => data[data.length - 1][col]);
 
         document.getElementById("last-updated").innerText = new Date(
           date.split("-").reverse().join("-")
         ).toDateString();
 
-        console.log(doses1, doses2);
+        console.log(doses1, doses2, reforco);
 
         const doses1_perc = ((doses1 / PORTUGAL_POPULATION) * 100).toFixed(2);
         const doses2_perc = ((doses2 / PORTUGAL_POPULATION) * 100).toFixed(2);
+        const reforco_perc = ((reforco / PORTUGAL_POPULATION) * 100).toFixed(2);
 
         animateValue(document.getElementById("first-num"), 0, doses1, 800);
         animateValue(document.getElementById("second-num"), 0, doses2, 800);
+        animateValue(document.getElementById("booster-num"), 0, reforco, 800);
 
         animateValue(
           document.getElementById("first-inc"),
@@ -405,9 +472,16 @@
           doses2_novas,
           800
         );
+        animateValue(
+          document.getElementById("booster-inc"),
+          0,
+          reforco_novas,
+          800
+        );
 
         document.getElementById("first-per").innerText = `${doses1_perc}%`;
         document.getElementById("second-per").innerText = `${doses2_perc}%`;
+        document.getElementById("booster-per").innerText = `${reforco_perc}%`;
 
         document.getElementById(
           "first-progress"
@@ -415,6 +489,9 @@
         document.getElementById(
           "second-progress"
         ).style.width = `${doses2_perc}%`;
+        document.getElementById(
+          "booster-progress"
+        ).style.width = `${reforco_perc}%`;
 
         updateChart(data);
       };
@@ -435,9 +512,9 @@
             if (!isNaN(line[j])) continue;
 
             if (TOTAL_COLUMNS.indexOf(j) >= 0) {
-              line[j] = data[i - 1][j];
+              line[j] = data[i - 1]?.[j] ?? 0;
             } else if (DELTA_COLUMNS.indexOf(j) >= 0) {
-              line[j] = line[j - 1] - data[i - 1][j - 1];
+              line[j] = (line[j - 1] ?? 0) - data[i - 1]?.[j - 1] ?? 0;
             }
           }
         }
